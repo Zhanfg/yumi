@@ -1,4 +1,16 @@
 #!/system/bin/sh
+# ColorOS 17 / OnePlus 13 safe-start gate (temporary until runtime arbitration exists).
+# Keep stock camera/OPlus schedulers unmodified; never run an independent CPU writer.
+_GUARD_MODEL="$(getprop ro.product.model 2>/dev/null)"
+_GUARD_DEVICE="$(getprop ro.product.device 2>/dev/null)"
+_GUARD_SOC="$(getprop ro.soc.model 2>/dev/null)"
+if [ "$_GUARD_DEVICE" = "OP5D0DL1" ] && [ "$_GUARD_SOC" = "SM8750" ]; then
+  _GUARD_MODDIR="${0%/*}"
+  [ "$_GUARD_MODDIR" = "$0" ] && _GUARD_MODDIR="."
+  mkdir -p "$_GUARD_MODDIR/logs" 2>/dev/null || :
+  printf '%s\n' "ColorOS17 safeguard: yumi scheduler startup blocked on ${_GUARD_MODEL}/${_GUARD_DEVICE}/${_GUARD_SOC} until camera and COSA arbitration is validated" >> "$_GUARD_MODDIR/logs/service.log" 2>/dev/null || :
+  exit 0
+fi
 #
 # yumi 模块启动脚本 (service.sh)
 #

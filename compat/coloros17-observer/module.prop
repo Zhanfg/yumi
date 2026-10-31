@@ -1,0 +1,6 @@
+id=coloros17_arbiter_observe
+name=ColorOS 17 Coexistence Observer (Read-only)
+version=0.1.0-pre1
+versionCode=1
+author=ColorOS17 Coexistence Lab
+description=OnePlus 13/SCRC/OPGCE/Lucky monitoring only; never writes system nodes, changes thermal settings, or starts yumi daemon.
