@@ -1,0 +1,20 @@
+name: ColorOS17 guard regression
+on:
+  push:
+    branches:
+      - feature/coloros17-compat-arbitration
+  pull_request:
+    paths:
+      - module/service.sh
+      - tests/test-coloros17-guard.sh
+      - .github/workflows/coloros17-guard.yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check shell safety gate
+        shell: bash
+        run: sh tests/test-coloros17-guard.sh

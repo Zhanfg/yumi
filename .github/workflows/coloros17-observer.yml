@@ -1,0 +1,55 @@
+name: ColorOS17 observer module
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/coloros17-compat-arbitration]
+    paths:
+      - 'compat/coloros17-observer/**'
+      - '.github/workflows/coloros17-observer.yml'
+  pull_request:
+    paths:
+      - 'compat/coloros17-observer/**'
+      - '.github/workflows/coloros17-observer.yml'
+permissions:
+  contents: read
+jobs:
+  test-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell regression (no host-side privileges)
+        shell: bash
+        run: sh compat/coloros17-observer/tests/test-arbiter.sh
+      - name: Package dedicated read-only module
+        shell: bash
+        run: |
+          set -euo pipefail
+          src=compat/coloros17-observer
+          mkdir -p dist/root/bin dist/root/META-INF/com/google/android
+          cp "$src/module.prop" "$src/service.sh" "$src/customize.sh" dist/root/
+          cp "$src/bin/arbiter.sh" dist/root/bin/
+          cat > dist/root/META-INF/com/google/android/update-binary <<'EOF'
+          #!/sbin/sh
+          umask 022
+          OUTFD=$2
+          ZIPFILE=$3
+          if [ -f /data/adb/magisk/util_functions.sh ]; then
+            . /data/adb/magisk/util_functions.sh
+            install_module
+            exit 0
+          fi
+          echo "Use KernelSU/APatch/Magisk module manager to import this ZIP"
+          exit 1
+          EOF
+          printf '#MAGISK\n' > dist/root/META-INF/com/google/android/updater-script
+          (cd dist/root && zip -qr ../ColorOS17_Coexistence_Observer_v0.1.0-pre1.zip .)
+          test -s dist/ColorOS17_Coexistence_Observer_v0.1.0-pre1.zip
+          unzip -l dist/ColorOS17_Coexistence_Observer_v0.1.0-pre1.zip
+          sha256sum dist/ColorOS17_Coexistence_Observer_v0.1.0-pre1.zip
+      - name: Upload observer ZIP (not yumi daemon)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ColorOS17-Coexistence-Observer-pre1
+          path: dist/ColorOS17_Coexistence_Observer_v0.1.0-pre1.zip
+          if-no-files-found: error
+          retention-days: 14
